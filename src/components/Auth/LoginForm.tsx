@@ -18,7 +18,9 @@ const LoginForm: React.FC = () => {
 
     try {
       const success = await login(credentials.username, credentials.password);
-      if (!success) {
+      if (success) {
+        // Navigation will be handled automatically by the routing logic
+      } else {
         setError('Invalid username or password');
       }
     } catch (err) {

@@ -1,18 +1,36 @@
 import React from 'react';
-import { BookOpen, User, Settings, LogOut, Key } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
+import { BookOpen, User, Settings, LogOut } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface HeaderProps {
-  currentPage: string;
   onOpenSettings?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ currentPage, onOpenSettings }) => {
+const Header: React.FC<HeaderProps> = ({ onOpenSettings }) => {
   const { user, logout } = useAuth();
+  const location = useLocation();
 
   const handleLogout = () => {
     logout();
   };
+
+  // Get page name from pathname
+  const getPageName = (pathname: string) => {
+    const pathMap: { [key: string]: string } = {
+      '/dashboard': 'Dashboard',
+      '/students': 'Students',
+      '/teachers': 'Teachers',
+      '/subjects': 'Subjects',
+      '/classes': 'Classes',
+      '/grades': 'Grade Entry',
+      '/reports': 'Reports',
+      '/analytics': 'Analytics'
+    };
+    return pathMap[pathname] || 'Dashboard';
+  };
+
+  const currentPage = getPageName(location.pathname);
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
