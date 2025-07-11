@@ -411,28 +411,24 @@ const generateUsernameFromName = (name: string): string => {
 
   const deleteUser = async (id: string) => {
     try {
+      // Unassign teacher from classes
+      await supabase
+        .from('classes')
+        .update({ assigned_teacher: null })
+        .eq('assigned_teacher', id);
+
+      // Delete user
       const { error } = await supabase
         .from('users')
         .delete()
         .eq('id', id);
 
       if (error) throw error;
-      setUsers(prev => prev.filter(user => user.id !== id));
-      
-      // Remove teacher assignment from classes
-      const { error: classError } = await supabase
-        .from('classes')
-        .update({ assigned_teacher: null })
-        .eq('assigned_teacher', id);
 
-      if (!classError) {
-        setClasses(prev => prev.map(cls => 
-          cls.assignedTeacher === id ? { ...cls, assignedTeacher: undefined } : cls
-        ));
-      }
+      setUsers(prev => prev.filter(user => user.id !== id));
     } catch (error) {
       console.error('Error deleting user:', error);
-      throw error;
+      setError('Failed to delete user');
     }
   };
 
