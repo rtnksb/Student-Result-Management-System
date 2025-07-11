@@ -15,6 +15,7 @@ import SubjectManagement from './components/Admin/SubjectManagement';
 import ClassManagement from './components/Admin/ClassManagement';
 import Analytics from './components/Analytics/Analytics';
 import AccountSettings from './components/Auth/AccountSettings';
+import ProtectedRoute from './components/ProtectedRoute';
 import { Student } from './types';
 
 const LoadingSpinner: React.FC = () => (
@@ -25,24 +26,6 @@ const LoadingSpinner: React.FC = () => (
     </div>
   </div>
 );
-
-// Protected Route Component
-const ProtectedRoute: React.FC<{ children: React.ReactNode; adminOnly?: boolean }> = ({ 
-  children, 
-  adminOnly = false 
-}) => {
-  const { isAuthenticated, user } = useAuth();
-  
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-  
-  if (adminOnly && user?.role !== 'admin') {
-    return <Navigate to="/dashboard" replace />;
-  }
-  
-  return <>{children}</>;
-};
 
 // Main Layout Component
 const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
