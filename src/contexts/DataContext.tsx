@@ -24,6 +24,7 @@ interface DataContextType {
   deleteSubject: (id: string) => Promise<void>;
   updateClass: (id: string, classInfo: Partial<ClassInfo>) => Promise<void>;
   generateTeacherCredentials: () => { username: string; password: string; accessId: string };
+  generateUsernameFromName: (name: string) => string;
   refreshData: () => Promise<void>;
 }
 
@@ -162,8 +163,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const teacherCount = users.filter(u => u.role === 'teacher').length;
     const accessId = `TCH${String(teacherCount + 1).padStart(3, '0')}`;
     const password = Math.random().toString(36).slice(-8);
+    const username = `teacher${String(teacherCount + 1).padStart(3, '0')}`;
     
-    return { password, accessId };
+    return { username, password, accessId };
   };
 
 const generateUsernameFromName = (name: string): string => {
