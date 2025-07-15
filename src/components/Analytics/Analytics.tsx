@@ -9,6 +9,8 @@ import {
 } from 'lucide-react';
 import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
+import schoolLogo from '../../../public/school-logo.png'; // Adjust path if needed
+
 
 const Analytics: React.FC = () => {
   const { students, subjects, grades, classes } = useData();
@@ -51,9 +53,12 @@ const Analytics: React.FC = () => {
     ? filteredGrades.reduce((sum, grade) => sum + grade.marksObtained, 0) / filteredGrades.length 
     : 0;
 
+  // Show all classes, even if no students/grades
+  const allClasses = classes; // Use all classes from context
+
   // Performance by class
   const classPerformanceData = useMemo(() => {
-    return accessibleClasses.map(cls => {
+    return allClasses.map(cls => {
       const classStudents = accessibleStudents.filter(s => s.class === cls.id);
       const classGrades = filteredGrades.filter(grade => {
         const student = students.find(s => s.id === grade.studentId);
@@ -78,8 +83,8 @@ const Analytics: React.FC = () => {
         passRate: Math.round(passRate * 10) / 10,
         totalGrades: classGrades.length
       };
-    }).filter(data => data.students > 0);
-  }, [accessibleClasses, accessibleStudents, filteredGrades, students, subjects]);
+    });
+  }, [allClasses, accessibleStudents, filteredGrades, students, subjects]);
 
   // Subject performance
   const subjectPerformanceData = useMemo(() => {
@@ -167,13 +172,22 @@ const Analytics: React.FC = () => {
     </div>
   );
 
+  // Overall pass rate
+  const overallPassCount = filteredGrades.filter(grade => {
+    const subject = subjects.find(s => s.id === grade.subjectId);
+    return subject && grade.marksObtained >= subject.passingMarks;
+  }).length;
+  const overallPassRate = filteredGrades.length > 0 ? (overallPassCount / filteredGrades.length) * 100 : 0;
+
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Analytics Dashboard</h2>
-          <p className="text-gray-600">Comprehensive insights into academic performance</p>
+      {/* School Logo and Header */}
+      <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
+        <div className="flex items-center space-x-4">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Analytics Dashboard</h2>
+            <p className="text-gray-600">Comprehensive insights into academic performance</p>
+          </div>
         </div>
         <div className="flex items-center space-x-2">
           <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center text-sm">
@@ -238,7 +252,7 @@ const Analytics: React.FC = () => {
       </div>
 
       {/* Key Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
         <StatCard
           title="Total Students"
           value={totalStudents}
@@ -265,6 +279,12 @@ const Analytics: React.FC = () => {
           icon={Target}
           trend={-2.1}
           color="bg-orange-50"
+        />
+        <StatCard
+          title="Overall Pass Rate"
+          value={`${overallPassRate.toFixed(1)}%`}
+          icon={TrendingUp}
+          color="bg-teal-50"
         />
       </div>
 
