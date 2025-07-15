@@ -37,7 +37,13 @@ const Header: React.FC<HeaderProps> = ({ onOpenSettings }) => {
       <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
         <div className="flex justify-between items-center py-3 sm:py-4">
           <div className="flex items-center min-w-0 flex-1">
-            <BookOpen className="h-8 w-8 text-blue-600 mr-3" />
+            {/* <BookOpen className="h-8 w-8 text-blue-600 mr-3" /> */}
+            <img
+              src="/school-logo.png"
+              alt="School Logo"
+              className="h-10 w-auto rounded"
+              style={{ background: 'white' }}
+            />
             <div className="min-w-0">
               <h1 className="text-lg sm:text-xl font-bold text-gray-900 truncate">J. R. Preparatory School</h1>
               <p className="text-xs sm:text-sm text-gray-600 hidden sm:block">Student Result Management System</p>
