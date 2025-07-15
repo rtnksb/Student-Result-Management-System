@@ -5,11 +5,10 @@ import {
 } from 'recharts';
 import { 
   TrendingUp, TrendingDown, Users, BookOpen, Trophy, Target,
-  Calendar, Filter, Download, RefreshCw
+  Filter, Download, RefreshCw
 } from 'lucide-react';
 import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
-import schoolLogo from '../../../public/school-logo.png'; // Adjust path if needed
 
 
 const Analytics: React.FC = () => {
@@ -360,7 +359,7 @@ const Analytics: React.FC = () => {
                   fill="#8884d8"
                   dataKey="count"
                 >
-                  {gradeDistributionData.map((entry, index) => (
+                  {gradeDistributionData.map((_, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
