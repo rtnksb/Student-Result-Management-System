@@ -3,6 +3,7 @@ import { Save, Search, BookOpen, Trophy, Calendar, AlertCircle } from 'lucide-re
 import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { Student, Subject, Grade } from '../../types';
+import { showNotification } from '../../utils/notification';
 
 const GradeEntry: React.FC = () => {
   const { students, subjects, grades, addGrade } = useData();
@@ -35,7 +36,7 @@ const GradeEntry: React.FC = () => {
 
     // Check if user can access this student's class
     if (!canAccessClass(selectedStudent.class)) {
-      alert('You do not have permission to enter grades for this student.');
+      showNotification('You do not have permission to enter grades for this student.', 'error');
       return;
     }
 
@@ -50,7 +51,10 @@ const GradeEntry: React.FC = () => {
       );
 
       if (existingAssignments.length >= 2) {
-        alert(`Maximum 2 assignments per term already entered for ${gradeData.term === 'first' ? 'first' : 'second'} term.`);
+        showNotification(
+          `Maximum 2 assignments per term already entered for ${gradeData.term === 'first' ? 'first' : 'second'} term.`,
+          'error'
+        );
         return;
       }
     }
@@ -78,7 +82,7 @@ const GradeEntry: React.FC = () => {
     };
 
     addGrade(newGrade);
-    
+
     // Reset form
     setGradeData({
       marksObtained: '',
@@ -88,8 +92,8 @@ const GradeEntry: React.FC = () => {
       remarks: '',
       term: 'first'
     });
-    
-    alert('Grade saved successfully!');
+
+    showNotification('Grade saved successfully!', 'success');
   };
 
   const getStudentGrades = (studentId: string) => {

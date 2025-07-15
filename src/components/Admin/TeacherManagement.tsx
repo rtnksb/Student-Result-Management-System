@@ -3,6 +3,7 @@ import { Plus, Search, Edit, Trash2, Eye, EyeOff, Copy, UserPlus, Mail } from 'l
 import { useData } from '../../contexts/DataContext';
 import { User } from '../../types';
 import { sendTeacherCredentials } from '../../utils/emailService';
+import { showNotification } from '../../utils/notification';
 
 const TeacherManagement: React.FC = () => {
   const { users, classes, addUser, updateUser, deleteUser, generateTeacherCredentials, generateUsernameFromName } = useData();
@@ -117,9 +118,10 @@ const TeacherManagement: React.FC = () => {
     if (window.confirm(`Are you sure you want to delete ${teacher.name}? This will remove their access and unassign them from all classes.`)) {
       try {
         await deleteUser(teacher.id);
+        showNotification('Teacher removed successfully.', 'success');
       } catch (error) {
         console.error('Error deleting teacher:', error);
-        alert('Error deleting teacher. Please try again.');
+        showNotification('Error removing teacher.', 'error');
       }
     }
   };

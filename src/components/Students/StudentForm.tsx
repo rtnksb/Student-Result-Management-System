@@ -3,6 +3,7 @@ import { X, Save, User } from 'lucide-react';
 import { Student } from '../../types';
 import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { showNotification } from '../../utils/notification';
 
 interface StudentFormProps {
   student?: Student;
@@ -38,19 +39,21 @@ const StudentForm: React.FC<StudentFormProps> = ({ student, onSave, onCancel }) 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Check if user can access the selected class
     if (!canAccessClass(formData.class)) {
-      alert('You do not have permission to add students to this class.');
+      showNotification('You do not have permission to add students to this class.', 'error');
       return;
     }
 
     if (student) {
       // Update existing student
       updateStudent(student.id, formData);
+      showNotification('Student updated successfully!', 'success');
     } else {
       // Add new student
       addStudent(formData);
+      showNotification('Student added successfully!', 'success');
     }
     
     onSave();

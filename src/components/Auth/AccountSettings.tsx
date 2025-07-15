@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { X, Save, Eye, EyeOff, User, Lock, AlertCircle, CheckCircle } from 'lucide-react';
+import { X, Save, Eye, EyeOff, User, AlertCircle, CheckCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useData } from '../../contexts/DataContext';
 import { supabase } from '../../lib/supabase';
+import { showNotification } from '../../utils/notification';
 
 interface AccountSettingsProps {
   onClose: () => void;
@@ -70,12 +71,14 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ onClose }) => {
 
       if (error || !userData) {
         setMessage({ type: 'error', text: 'Failed to verify current password' });
+        showNotification('Failed to verify current password', 'error');
         setLoading(false);
         return;
       }
 
       if (formData.currentPassword !== userData.password) {
         setMessage({ type: 'error', text: 'Current password is incorrect' });
+        showNotification('Current password is incorrect', 'error');
         setLoading(false);
         return;
       }
@@ -84,12 +87,14 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ onClose }) => {
       if (formData.newPassword) {
         if (formData.newPassword.length < 6) {
           setMessage({ type: 'error', text: 'New password must be at least 6 characters long' });
+          showNotification('New password must be at least 6 characters long', 'error');
           setLoading(false);
           return;
         }
 
         if (formData.newPassword !== formData.confirmPassword) {
           setMessage({ type: 'error', text: 'New passwords do not match' });
+          showNotification('New passwords do not match', 'error');
           setLoading(false);
           return;
         }
@@ -98,6 +103,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ onClose }) => {
       // Validate username
       if (formData.username !== user.username && !usernameAvailable) {
         setMessage({ type: 'error', text: 'Username is not available' });
+        showNotification('Username is not available', 'error');
         setLoading(false);
         return;
       }
@@ -116,6 +122,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ onClose }) => {
       if (Object.keys(updateData).length > 0) {
         await updateUser(user.id, updateData);
         setMessage({ type: 'success', text: 'Account updated successfully!' });
+        showNotification('Account updated successfully!', 'success');
         
         // Clear password fields
         setFormData(prev => ({
@@ -131,10 +138,12 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ onClose }) => {
         }, 2000);
       } else {
         setMessage({ type: 'error', text: 'No changes to save' });
+        showNotification('No changes to save', 'error');
       }
     } catch (error) {
       console.error('Error updating account:', error);
       setMessage({ type: 'error', text: 'Failed to update account. Please try again.' });
+      showNotification('Failed to update account. Please try again.', 'error');
     } finally {
       setLoading(false);
     }

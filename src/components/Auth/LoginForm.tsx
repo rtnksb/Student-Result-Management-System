@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { BookOpen, User, Lock, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { showNotification } from '../../utils/notification';
 
 const LoginForm: React.FC = () => {
   const [credentials, setCredentials] = useState({
@@ -19,12 +20,15 @@ const LoginForm: React.FC = () => {
     try {
       const success = await login(credentials.username, credentials.password);
       if (success) {
+        showNotification('Login successful!', 'success');
         // Navigation will be handled automatically by the routing logic
       } else {
         setError('Invalid username or password');
+        showNotification('Invalid username or password', 'error'); // <-- Add this line
       }
     } catch (err) {
       setError('Login failed. Please try again.');
+      showNotification('Login failed. Please check your credentials.', 'error');
     } finally {
       setIsLoading(false);
     }

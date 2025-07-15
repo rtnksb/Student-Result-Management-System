@@ -3,6 +3,7 @@ import { Plus, Search, Edit, FileText, Phone, Mail, Trash2 } from 'lucide-react'
 import { Student } from '../../types';
 import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { showNotification } from '../../utils/notification';
 
 interface StudentListProps {
   onAddStudent: () => void;
@@ -32,7 +33,12 @@ const StudentList: React.FC<StudentListProps> = ({ onAddStudent, onEditStudent, 
 
   const handleDeleteStudent = (student: Student) => {
     if (window.confirm(`Are you sure you want to delete ${student.name}? This will also remove all their grades.`)) {
-      deleteStudent(student.id);
+      try {
+        deleteStudent(student.id);
+        showNotification('Student removed successfully.', 'success');
+      } catch (err) {
+        showNotification('Error removing student.', 'error');
+      }
     }
   };
 

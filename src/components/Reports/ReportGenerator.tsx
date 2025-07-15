@@ -4,6 +4,7 @@ import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { Student, StudentResult } from '../../types';
 import { generateStudentResultPDF } from '../../utils/pdfGenerator';
+import { showNotification, showBulkProgressNotification } from '../../utils/notification';
 
 const ReportGenerator: React.FC = () => {
   const { students, subjects, grades } = useData();
@@ -107,12 +108,24 @@ const ReportGenerator: React.FC = () => {
   const handleGenerateReport = (student: Student) => {
     const studentResult = getStudentResult(student);
     generateStudentResultPDF(studentResult, academicYear);
+    showNotification(`Report generated for ${student.name}`, 'success');
   };
 
   const handleBulkReportGeneration = () => {
+    if (filteredStudents.length === 0) {
+      showNotification('No students to generate reports for.', 'error');
+      return;
+    }
+    let progress = 0;
+    showBulkProgressNotification('Bulk report generation started...', progress, filteredStudents.length);
     filteredStudents.forEach((student, index) => {
       setTimeout(() => {
         handleGenerateReport(student);
+        progress++;
+        showBulkProgressNotification('Generating reports...', progress, filteredStudents.length);
+        if (progress === filteredStudents.length) {
+          showBulkProgressNotification('All reports generated!', progress, filteredStudents.length);
+        }
       }, index * 100);
     });
   };

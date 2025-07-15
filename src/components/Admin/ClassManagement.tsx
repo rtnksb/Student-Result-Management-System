@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Users, UserCheck, Settings } from 'lucide-react';
 import { useData } from '../../contexts/DataContext';
+import { showNotification } from '../../utils/notification';
 
 const ClassManagement: React.FC = () => {
   const { classes, users, students, updateClass } = useData();
@@ -19,7 +20,7 @@ const ClassManagement: React.FC = () => {
       await updateClass(classId, { assignedTeacher: teacherId || undefined });
     } catch (error) {
       console.error('Error assigning teacher:', error);
-      alert('Error assigning teacher. Please try again.');
+      showNotification('Error assigning teacher.', 'error');
     }
   };
 
