@@ -34,9 +34,9 @@ const ReportGenerator: React.FC = () => {
     );
     
     const studentSubjects = subjects.filter(subject => 
-      subject.classes.includes(student.class) &&
-      studentGrades.some(grade => grade.subjectId === subject.id)
-    );
+  subject.classes.includes(student.class)
+);
+
     
     // Calculate marks based on result type with new assignment system
     let totalMarks = 0;

@@ -93,57 +93,63 @@ export const generateStudentResultPDF = (studentResult: StudentResult, academicY
   
   let rowIndex = 0;
   studentResult.subjects.forEach(subject => {
-    const subjectData = subjectGrades.get(subject.id);
-    if (subjectData) {
-      // Alternate row colors
-      if (rowIndex % 2 === 0) {
-        doc.setFillColor(248, 249, 250);
-        doc.rect(20, yPosition - 7, 170, 10, 'F');
-      }
-      
-      const term1AssignmentTotal = subjectData.term1Assignments.reduce((sum: number, g: any) => sum + g.marksObtained, 0);
-      const term2AssignmentTotal = subjectData.term2Assignments.reduce((sum: number, g: any) => sum + g.marksObtained, 0);
-      const halfYearlyMarks = subjectData.halfYearly?.marksObtained || 0;
-      const finalMarks = subjectData.final?.marksObtained || 0;
-      
-      let totalMarks = 0;
-      let examMarks = 0;
-      
-      if (studentResult.resultType === 'half-yearly') {
-        totalMarks = term1AssignmentTotal + halfYearlyMarks;
-        examMarks = halfYearlyMarks;
-      } else {
-        totalMarks = term1AssignmentTotal + term2AssignmentTotal + halfYearlyMarks + finalMarks;
-        examMarks = halfYearlyMarks + finalMarks;
-      }
-      
-      // Calculate percentage based on exam marks only (assignments are bonus)
-      const examTotalPossible = studentResult.resultType === 'half-yearly' 
-        ? subject.maxMarks 
-        : subject.maxMarks * 2;
-      
-      const percentage = examTotalPossible > 0 ? (examMarks / examTotalPossible) * 100 : 0;
-      const gradeText = getGradeText(percentage);
-      
-      doc.text(subject.name, 25, yPosition);
-      
-      if (studentResult.resultType === 'half-yearly') {
-        doc.text(`${term1AssignmentTotal}/40`, 65, yPosition);
-        doc.text(`${halfYearlyMarks}/${subject.maxMarks}`, 105, yPosition);
-        doc.text(totalMarks.toString(), 140, yPosition);
-        doc.text(gradeText, 170, yPosition);
-      } else {
-        const allAssignments = term1AssignmentTotal + term2AssignmentTotal;
-        doc.text(`${allAssignments}/80`, 55, yPosition);
-        doc.text(`${halfYearlyMarks}/${subject.maxMarks}`, 85, yPosition);
-        doc.text(`${finalMarks}/${subject.maxMarks}`, 115, yPosition);
-        doc.text(totalMarks.toString(), 140, yPosition);
-        doc.text(gradeText, 170, yPosition);
-      }
-      
-      yPosition += 10;
-      rowIndex++;
+    let subjectData = subjectGrades.get(subject.id);
+    if (!subjectData) {
+      subjectData = {
+        term1Assignments: [],
+        term2Assignments: [],
+        halfYearly: null,
+        final: null
+      };
     }
+    // Alternate row colors
+    if (rowIndex % 2 === 0) {
+      doc.setFillColor(248, 249, 250);
+      doc.rect(20, yPosition - 7, 170, 10, 'F');
+    }
+    
+    const term1AssignmentTotal = subjectData.term1Assignments.reduce((sum: number, g: any) => sum + g.marksObtained, 0);
+    const term2AssignmentTotal = subjectData.term2Assignments.reduce((sum: number, g: any) => sum + g.marksObtained, 0);
+    const halfYearlyMarks = subjectData.halfYearly?.marksObtained || 0;
+    const finalMarks = subjectData.final?.marksObtained || 0;
+    
+    let totalMarks = 0;
+    let examMarks = 0;
+    
+    if (studentResult.resultType === 'half-yearly') {
+      totalMarks = term1AssignmentTotal + halfYearlyMarks;
+      examMarks = halfYearlyMarks;
+    } else {
+      totalMarks = term1AssignmentTotal + term2AssignmentTotal + halfYearlyMarks + finalMarks;
+      examMarks = halfYearlyMarks + finalMarks;
+    }
+    
+    // Calculate percentage based on exam marks only (assignments are bonus)
+    const examTotalPossible = studentResult.resultType === 'half-yearly' 
+      ? subject.maxMarks 
+      : subject.maxMarks * 2;
+    
+    const percentage = examTotalPossible > 0 ? (examMarks / examTotalPossible) * 100 : 0;
+    const gradeText = getGradeText(percentage);
+    
+    doc.text(subject.name, 25, yPosition);
+    
+    if (studentResult.resultType === 'half-yearly') {
+      doc.text(`${term1AssignmentTotal}/40`, 65, yPosition);
+      doc.text(`${halfYearlyMarks}/${subject.maxMarks}`, 105, yPosition);
+      doc.text(totalMarks.toString(), 140, yPosition);
+      doc.text(gradeText, 170, yPosition);
+    } else {
+      const allAssignments = term1AssignmentTotal + term2AssignmentTotal;
+      doc.text(`${allAssignments}/80`, 55, yPosition);
+      doc.text(`${halfYearlyMarks}/${subject.maxMarks}`, 85, yPosition);
+      doc.text(`${finalMarks}/${subject.maxMarks}`, 115, yPosition);
+      doc.text(totalMarks.toString(), 140, yPosition);
+      doc.text(gradeText, 170, yPosition);
+    }
+    
+    yPosition += 10;
+    rowIndex++;
   });
   
   // Summary
