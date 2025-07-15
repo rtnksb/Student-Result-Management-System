@@ -2,6 +2,7 @@ import React from 'react';
 import { useLocation } from 'react-router-dom';
 import { User, Settings, LogOut } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { showNotification } from '../../utils/notification';
 
 interface HeaderProps {
   onOpenSettings?: () => void;
@@ -13,6 +14,7 @@ const Header: React.FC<HeaderProps> = ({ onOpenSettings }) => {
 
   const handleLogout = () => {
     logout();
+    showNotification('Logged out successfully.', 'success');
   };
 
   // Get page name from pathname
