@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Users, BookOpen, TrendingUp, FileText, ClipboardList } from 'lucide-react';
 import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard: React.FC = () => {
   const { students, subjects, grades } = useData();
   const { user, canAccessClass } = useAuth();
+  const navigate = useNavigate(); // <-- Add this line
 
   // Filter data based on user role and permissions
   const filteredStudents = user?.role === 'admin' 
@@ -57,13 +59,6 @@ const Dashboard: React.FC = () => {
     }
   ];
 
-  const recentActivities = [
-    { action: 'Added new student', details: 'Ahmed Hassan enrolled in Class 10-A', time: '2 hours ago' },
-    { action: 'Grade entered', details: 'Mathematics marks for Sara Khan', time: '4 hours ago' },
-    { action: 'Generated report', details: 'PDF report for Ali Ahmed', time: '1 day ago' },
-    { action: 'Updated subject', details: 'Physics syllabus updated', time: '2 days ago' }
-  ];
-
   // Calculate class performance for accessible classes
   const accessibleClasses = user?.role === 'admin' 
     ? [...new Set(students.map(s => s.class))]
@@ -86,6 +81,17 @@ const Dashboard: React.FC = () => {
       avgScore: avgScore.toFixed(1)
     };
   });
+
+  // Example admin message state (replace with context or backend as needed)
+  const [adminMessage, setAdminMessage] = useState<string>('Welcome to the new academic year! Please submit grades by Friday.');
+  const [editing, setEditing] = useState(false);
+  const [tempMessage, setTempMessage] = useState(adminMessage);
+
+  const handleSave = () => {
+    setAdminMessage(tempMessage);
+    setEditing(false);
+    // TODO: Save to backend or context
+  };
 
   return (
     <div className="space-y-6">
@@ -130,36 +136,73 @@ const Dashboard: React.FC = () => {
 
       {/* Recent Activities and Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        {/* Recent Activities */}
+        {/* Admin Message / Announcement */}
         <div className="bg-white rounded-lg shadow p-4 sm:p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activities</h3>
-          <div className="space-y-4">
-            {recentActivities.map((activity, index) => (
-              <div key={index} className="flex items-start space-x-3">
-                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">{activity.action}</p>
-                  <p className="text-sm text-gray-600 break-words">{activity.details}</p>
-                  <p className="text-xs text-gray-500 mt-1">{activity.time}</p>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Announcement</h3>
+          {user?.role === 'admin' ? (
+            editing ? (
+              <div>
+                <textarea
+                  className="w-full border rounded p-2 mb-2"
+                  value={tempMessage}
+                  onChange={e => setTempMessage(e.target.value)}
+                  rows={3}
+                />
+                <div className="flex gap-2">
+                  <button
+                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                    onClick={handleSave}
+                  >
+                    Save
+                  </button>
+                  <button
+                    className="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300"
+                    onClick={() => { setEditing(false); setTempMessage(adminMessage); }}
+                  >
+                    Cancel
+                  </button>
                 </div>
               </div>
-            ))}
-          </div>
+            ) : (
+              <div className="flex justify-between items-start">
+                <p className="text-gray-800">{adminMessage}</p>
+                <button
+                  className="ml-4 text-blue-600 hover:underline text-sm"
+                  onClick={() => setEditing(true)}
+                >
+                  Edit
+                </button>
+              </div>
+            )
+          ) : (
+            <p className="text-gray-800">{adminMessage}</p>
+          )}
         </div>
+
+        
 
         {/* Quick Actions */}
         <div className="bg-white rounded-lg shadow p-4 sm:p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
           <div className="space-y-3">
-            <button className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center">
+            <button
+              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
+              onClick={() => navigate('/students')}
+            >
               <Users className="h-5 w-5 mr-2" />
               Add New Student
             </button>
-            <button className="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center">
+            <button
+              className="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center"
+              onClick={() => navigate('/grades')}
+            >
               <ClipboardList className="h-5 w-5 mr-2" />
               Enter Grades
             </button>
-            <button className="w-full bg-purple-600 text-white py-3 px-4 rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center">
+            <button
+              className="w-full bg-purple-600 text-white py-3 px-4 rounded-lg hover:bg-purple-700 transition-colors flex items-center justify-center"
+              onClick={() => navigate('/reports')}
+            >
               <FileText className="h-5 w-5 mr-2" />
               Generate Reports
             </button>

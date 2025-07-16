@@ -110,13 +110,6 @@ const GradeEntry: React.FC = () => {
     );
   };
 
-  const getGradesByType = (studentId: string, examType: string) => {
-    return grades.filter(grade => 
-      grade.studentId === studentId && 
-      grade.examType === examType &&
-      grade.academicYear === gradeData.academicYear
-    );
-  };
 
   return (
     <div className="space-y-6">
