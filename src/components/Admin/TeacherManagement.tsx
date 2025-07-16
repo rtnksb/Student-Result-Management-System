@@ -158,7 +158,18 @@ const TeacherManagement: React.FC = () => {
   };
 
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
+    navigator.clipboard.writeText(text).then(() => {
+      showNotification('Copied to clipboard!', 'success');
+    }).catch(() => {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      showNotification('Copied to clipboard!', 'success');
+    });
   };
 
   const getAssignedClassNames = (assignedClasses: string[] = []) => {
@@ -230,6 +241,7 @@ const TeacherManagement: React.FC = () => {
                       <button
                         onClick={() => copyToClipboard(teacher.accessId || '')}
                         className="text-gray-400 hover:text-gray-600"
+                        title="Copy Access ID"
                       >
                         <Copy className="h-4 w-4" />
                       </button>
@@ -241,6 +253,7 @@ const TeacherManagement: React.FC = () => {
                       <button
                         onClick={() => copyToClipboard(teacher.username)}
                         className="text-gray-400 hover:text-gray-600"
+                        title="Copy Username"
                       >
                         <Copy className="h-4 w-4" />
                       </button>
@@ -260,6 +273,7 @@ const TeacherManagement: React.FC = () => {
                       <button
                         onClick={() => copyToClipboard(teacher.password)}
                         className="text-gray-400 hover:text-gray-600"
+                        title="Copy Password"
                       >
                         <Copy className="h-4 w-4" />
                       </button>
