@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Users, BookOpen, TrendingUp, FileText, ClipboardList } from 'lucide-react';
 import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom'; // <-- Add this import
 
 const Dashboard: React.FC = () => {
   const { students, subjects, grades } = useData();
@@ -57,6 +57,13 @@ const Dashboard: React.FC = () => {
       color: 'bg-orange-500',
       bgColor: 'bg-orange-50'
     }
+  ];
+
+  const recentActivities = [
+    { action: 'Added new student', details: 'Ahmed Hassan enrolled in Class 10-A', time: '2 hours ago' },
+    { action: 'Grade entered', details: 'Mathematics marks for Sara Khan', time: '4 hours ago' },
+    { action: 'Generated report', details: 'PDF report for Ali Ahmed', time: '1 day ago' },
+    { action: 'Updated subject', details: 'Physics syllabus updated', time: '2 days ago' }
   ];
 
   // Calculate class performance for accessible classes
@@ -136,47 +143,21 @@ const Dashboard: React.FC = () => {
 
       {/* Recent Activities and Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        {/* Admin Message / Announcement */}
+        {/* Recent Activities */}
         <div className="bg-white rounded-lg shadow p-4 sm:p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Announcement</h3>
-          {user?.role === 'admin' ? (
-            editing ? (
-              <div>
-                <textarea
-                  className="w-full border rounded p-2 mb-2"
-                  value={tempMessage}
-                  onChange={e => setTempMessage(e.target.value)}
-                  rows={3}
-                />
-                <div className="flex gap-2">
-                  <button
-                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                    onClick={handleSave}
-                  >
-                    Save
-                  </button>
-                  <button
-                    className="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300"
-                    onClick={() => { setEditing(false); setTempMessage(adminMessage); }}
-                  >
-                    Cancel
-                  </button>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activities</h3>
+          <div className="space-y-4">
+            {recentActivities.map((activity, index) => (
+              <div key={index} className="flex items-start space-x-3">
+                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900">{activity.action}</p>
+                  <p className="text-sm text-gray-600 break-words">{activity.details}</p>
+                  <p className="text-xs text-gray-500 mt-1">{activity.time}</p>
                 </div>
               </div>
-            ) : (
-              <div className="flex justify-between items-start">
-                <p className="text-gray-800">{adminMessage}</p>
-                <button
-                  className="ml-4 text-blue-600 hover:underline text-sm"
-                  onClick={() => setEditing(true)}
-                >
-                  Edit
-                </button>
-              </div>
-            )
-          ) : (
-            <p className="text-gray-800">{adminMessage}</p>
-          )}
+            ))}
+          </div>
         </div>
 
         
