@@ -67,3 +67,14 @@ export interface ClassInfo {
   sections: string[];
   assignedTeacher?: string; // Teacher ID
 }
+
+export interface Announcement {
+  id: string;
+  title: string;
+  content: string;
+  priority: 'low' | 'medium' | 'high';
+  createdBy: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
