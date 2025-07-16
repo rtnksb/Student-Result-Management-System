@@ -19,8 +19,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check for stored auth data on app load
-    const storedUser = localStorage.getItem('currentUser');
+    // Check for stored auth data on app load (using sessionStorage instead of localStorage)
+    const storedUser = sessionStorage.getItem('currentUser');
     if (storedUser) {
       try {
         const user = JSON.parse(storedUser);
@@ -30,10 +30,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
       } catch (error) {
         console.error('Error parsing stored user:', error);
-        localStorage.removeItem('currentUser');
+        sessionStorage.removeItem('currentUser');
       }
     }
     setLoading(false);
+
+    // Add event listener for browser close/refresh
+    const handleBeforeUnload = () => {
+      // Clear session data when browser is closed or refreshed
+      sessionStorage.removeItem('currentUser');
+    };
+
+    const handleVisibilityChange = () => {
+      // Optional: Also clear on tab visibility change (when user switches away)
+      if (document.visibilityState === 'hidden') {
+        sessionStorage.removeItem('currentUser');
+      }
+    };
+
+    // Listen for browser close/refresh
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    // Optional: Listen for tab visibility changes
+    // document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Cleanup event listeners
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      // document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   const login = async (username: string, password: string): Promise<boolean> => {
@@ -77,7 +102,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAuthenticated: true
       });
       
-      localStorage.setItem('currentUser', JSON.stringify(authUser));
+      sessionStorage.setItem('currentUser', JSON.stringify(authUser));
       return true;
     } catch (error) {
       console.error('Login error:', error);
@@ -92,7 +117,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       user: null,
       isAuthenticated: false
     });
-    localStorage.removeItem('currentUser');
+    sessionStorage.removeItem('currentUser');
   };
 
   const canAccessClass = (classId: string): boolean => {
