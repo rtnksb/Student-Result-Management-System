@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Student, Subject, Grade, User, ClassInfo } from '../types';
+import { Student, Subject, Grade, User, ClassInfo, Announcement } from '../types';
 import { supabase } from '../lib/supabase';
 
 interface DataContextType {
@@ -8,6 +8,7 @@ interface DataContextType {
   grades: Grade[];
   users: User[];
   classes: ClassInfo[];
+  announcements: Announcement[];
   loading: boolean;
   error: string | null;
   addStudent: (student: Omit<Student, 'id'>) => Promise<void>;
@@ -23,6 +24,9 @@ interface DataContextType {
   updateSubject: (id: string, subject: Partial<Subject>) => Promise<void>;
   deleteSubject: (id: string) => Promise<void>;
   updateClass: (id: string, classInfo: Partial<ClassInfo>) => Promise<void>;
+  addAnnouncement: (announcement: Omit<Announcement, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  updateAnnouncement: (id: string, announcement: Partial<Announcement>) => Promise<void>;
+  deleteAnnouncement: (id: string) => Promise<void>;
   generateTeacherCredentials: () => { username: string; password: string; accessId: string };
   generateUsernameFromName: (name: string) => string;
   refreshData: () => Promise<void>;
@@ -36,6 +40,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [grades, setGrades] = useState<Grade[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [classes, setClasses] = useState<ClassInfo[]>([]);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -93,6 +98,17 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     remarks: dbGrade.remarks || ''
   });
 
+  const convertDbAnnouncement = (dbAnnouncement: any): Announcement => ({
+    id: dbAnnouncement.id,
+    title: dbAnnouncement.title,
+    content: dbAnnouncement.content,
+    priority: dbAnnouncement.priority,
+    createdBy: dbAnnouncement.created_by,
+    isActive: dbAnnouncement.is_active,
+    createdAt: dbAnnouncement.created_at,
+    updatedAt: dbAnnouncement.updated_at
+  });
+
   // Load all data from Supabase
   const loadData = async () => {
     try {
@@ -100,12 +116,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setError(null);
 
       // Load all data in parallel
-      const [usersResult, classesResult, subjectsResult, studentsResult, gradesResult] = await Promise.allSettled([
+      const [usersResult, classesResult, subjectsResult, studentsResult, gradesResult, announcementsResult] = await Promise.allSettled([
         supabase.from('users').select('*'),
         supabase.from('classes').select('*'),
         supabase.from('subjects').select('*'),
         supabase.from('students').select('*'),
-        supabase.from('grades').select('*')
+        supabase.from('grades').select('*'),
+        supabase.from('announcements').select('*').eq('is_active', true).order('created_at', { ascending: false })
       ]);
 
       // Process users
@@ -141,6 +158,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setGrades(gradesResult.value.data?.map(convertDbGrade) || []);
       } else {
         console.error('Error loading grades:', gradesResult.status === 'fulfilled' ? gradesResult.value.error : gradesResult.reason);
+      }
+
+      // Process announcements
+      if (announcementsResult.status === 'fulfilled' && !announcementsResult.value.error) {
+        setAnnouncements(announcementsResult.value.data?.map(convertDbAnnouncement) || []);
+      } else {
+        console.error('Error loading announcements:', announcementsResult.status === 'fulfilled' ? announcementsResult.value.error : announcementsResult.reason);
       }
 
     } catch (error) {
@@ -528,6 +552,74 @@ const generateUsernameFromName = (name: string): string => {
     }
   };
 
+  // Announcement operations
+  const addAnnouncement = async (announcementData: Omit<Announcement, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      const { data, error } = await supabase
+        .from('announcements')
+        .insert({
+          title: announcementData.title,
+          content: announcementData.content,
+          priority: announcementData.priority,
+          created_by: announcementData.createdBy,
+          is_active: announcementData.isActive
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      if (data) {
+        setAnnouncements(prev => [convertDbAnnouncement(data), ...prev]);
+      }
+    } catch (error) {
+      console.error('Error adding announcement:', error);
+      throw error;
+    }
+  };
+
+  const updateAnnouncement = async (id: string, announcementData: Partial<Announcement>) => {
+    try {
+      const updateData: any = {};
+      if (announcementData.title) updateData.title = announcementData.title;
+      if (announcementData.content) updateData.content = announcementData.content;
+      if (announcementData.priority) updateData.priority = announcementData.priority;
+      if (announcementData.isActive !== undefined) updateData.is_active = announcementData.isActive;
+      updateData.updated_at = new Date().toISOString();
+
+      const { data, error } = await supabase
+        .from('announcements')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      if (data) {
+        setAnnouncements(prev => prev.map(announcement => 
+          announcement.id === id ? convertDbAnnouncement(data) : announcement
+        ));
+      }
+    } catch (error) {
+      console.error('Error updating announcement:', error);
+      throw error;
+    }
+  };
+
+  const deleteAnnouncement = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('announcements')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      setAnnouncements(prev => prev.filter(announcement => announcement.id !== id));
+    } catch (error) {
+      console.error('Error deleting announcement:', error);
+      throw error;
+    }
+  };
+
   return (
     <DataContext.Provider value={{
       students,
@@ -535,6 +627,7 @@ const generateUsernameFromName = (name: string): string => {
       grades,
       users,
       classes,
+      announcements,
       loading,
       error,
       addStudent,
@@ -550,6 +643,9 @@ const generateUsernameFromName = (name: string): string => {
       updateSubject,
       deleteSubject,
       updateClass,
+      addAnnouncement,
+      updateAnnouncement,
+      deleteAnnouncement,
       generateTeacherCredentials,
       generateUsernameFromName,
       refreshData

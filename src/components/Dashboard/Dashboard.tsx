@@ -3,6 +3,7 @@ import { Users, BookOpen, TrendingUp, FileText, ClipboardList } from 'lucide-rea
 import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom'; // <-- Add this import
+import AnnouncementSection from './AnnouncementSection';
 
 const Dashboard: React.FC = () => {
   const { students, subjects, grades } = useData();
@@ -57,13 +58,6 @@ const Dashboard: React.FC = () => {
       color: 'bg-orange-500',
       bgColor: 'bg-orange-50'
     }
-  ];
-
-  const recentActivities = [
-    { action: 'Added new student', details: 'Ahmed Hassan enrolled in Class 10-A', time: '2 hours ago' },
-    { action: 'Grade entered', details: 'Mathematics marks for Sara Khan', time: '4 hours ago' },
-    { action: 'Generated report', details: 'PDF report for Ali Ahmed', time: '1 day ago' },
-    { action: 'Updated subject', details: 'Physics syllabus updated', time: '2 days ago' }
   ];
 
   // Calculate class performance for accessible classes
@@ -143,24 +137,8 @@ const Dashboard: React.FC = () => {
 
       {/* Recent Activities and Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        {/* Recent Activities */}
-        <div className="bg-white rounded-lg shadow p-4 sm:p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activities</h3>
-          <div className="space-y-4">
-            {recentActivities.map((activity, index) => (
-              <div key={index} className="flex items-start space-x-3">
-                <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-900">{activity.action}</p>
-                  <p className="text-sm text-gray-600 break-words">{activity.details}</p>
-                  <p className="text-xs text-gray-500 mt-1">{activity.time}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        
+        {/* Announcements Section */}
+        <AnnouncementSection />
 
         {/* Quick Actions */}
         <div className="bg-white rounded-lg shadow p-4 sm:p-6">
