@@ -46,32 +46,3 @@ export const generateSecurePassword = (length: number = 12): string => {
   // Shuffle the password
   return password.split('').sort(() => Math.random() - 0.5).join('');
 };
-
-export const validatePassword = (password: string): { isValid: boolean; errors: string[] } => {
-  const errors: string[] = [];
-  
-  // Check minimum length
-  if (password.length < 6) {
-    errors.push('Password must be at least 6 characters long');
-  }
-  
-  // Check for uppercase letter
-  if (!/[A-Z]/.test(password)) {
-    errors.push('Password must contain at least one uppercase letter');
-  }
-  
-  // Check for number
-  if (!/[0-9]/.test(password)) {
-    errors.push('Password must contain at least one number');
-  }
-  
-  // Check for special character
-  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
-    errors.push('Password must contain at least one special character (!@#$%^&* etc.)');
-  }
-  
-  return {
-    isValid: errors.length === 0,
-    errors
-  };
-};

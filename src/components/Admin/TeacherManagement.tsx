@@ -3,7 +3,6 @@ import { Plus, Search, Edit, Trash2, Eye, EyeOff, Copy, UserPlus, Mail } from 'l
 import { useData } from '../../contexts/DataContext';
 import { User } from '../../types';
 import { sendTeacherCredentials } from '../../utils/emailService';
-import { validatePassword } from '../../utils/passwordUtils';
 import { showNotification } from '../../utils/notification';
 
 const TeacherManagement: React.FC = () => {
@@ -61,10 +60,6 @@ const TeacherManagement: React.FC = () => {
     setShowAddForm(true);
   };
 
-  const [passwordError, setPasswordError] = useState<string>('');
-  const [showPasswordForm, setShowPasswordForm] = useState(false);
-  const [manualPassword, setManualPassword] = useState('');
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -80,23 +75,9 @@ const TeacherManagement: React.FC = () => {
         // Add new teacher
         if (!generatedCredentials) return;
         
-        // Use manual password if provided, otherwise use generated one
-        const passwordToUse = showPasswordForm && manualPassword 
-          ? manualPassword 
-          : generatedCredentials.password;
-        
-        // Validate password
-        const passwordValidation = validatePassword(passwordToUse);
-        if (!passwordValidation.isValid) {
-          const errorMessage = passwordValidation.errors.join('. ');
-          setPasswordError(errorMessage);
-          showNotification(errorMessage, 'error');
-          return;
-        }
-        
         await addUser({
           username: generatedCredentials.username,
-          password: passwordToUse,
+          password: generatedCredentials.password,
           role: 'teacher',
           name: formData.name,
           email: formData.email,
@@ -106,25 +87,20 @@ const TeacherManagement: React.FC = () => {
 
         // Send email with credentials
         if (formData.email) {
-          const credentialsToSend = {
-            ...generatedCredentials,
-            password: passwordToUse
-          };
-          
-          setEmailSending(prev => ({ ...prev, [credentialsToSend.username]: true }));
+          setEmailSending(prev => ({ ...prev, [generatedCredentials.username]: true }));
           
           try {
             await sendTeacherCredentials({
-              username: credentialsToSend.username,
-              password: credentialsToSend.password,
-              accessId: credentialsToSend.accessId,
+              username: generatedCredentials.username,
+              password: generatedCredentials.password,
+              accessId: generatedCredentials.accessId,
               teacherName: formData.name,
               teacherEmail: formData.email
             });
           } catch (emailError) {
             console.error('Error sending email:', emailError);
           } finally {
-            setEmailSending(prev => ({ ...prev, [credentialsToSend.username]: false }));
+            setEmailSending(prev => ({ ...prev, [generatedCredentials.username]: false }));
           }
         }
       }
@@ -132,9 +108,6 @@ const TeacherManagement: React.FC = () => {
       setShowAddForm(false);
       setEditingTeacher(null);
       setGeneratedCredentials(null);
-      setShowPasswordForm(false);
-      setManualPassword('');
-      setPasswordError('');
     } catch (error) {
       console.error('Error saving teacher:', error);
       alert('Error saving teacher. Please try again.');
@@ -381,53 +354,9 @@ const TeacherManagement: React.FC = () => {
                     </div>
                     <div className="flex justify-between">
                       <span>Password:</span>
-                      <span className="font-mono">
-                        {showPasswordForm && manualPassword ? manualPassword : generatedCredentials.password}
-                      </span>
+                      <span className="font-mono">{generatedCredentials.password}</span>
                     </div>
                   </div>
-                  
-                  <div className="mt-3 space-y-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowPasswordForm(!showPasswordForm);
-                        setPasswordError('');
-                        setManualPassword('');
-                      }}
-                      className="text-sm text-blue-600 hover:text-blue-800"
-                    >
-                      {showPasswordForm ? 'Use Generated Password' : 'Set Custom Password'}
-                    </button>
-                    
-                    {showPasswordForm && (
-                      <div className="space-y-2">
-                        <input
-                          type="password"
-                          value={manualPassword}
-                          onChange={(e) => {
-                            setManualPassword(e.target.value);
-                            setPasswordError('');
-                          }}
-                          placeholder="Enter custom password"
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                        />
-                        {passwordError && (
-                          <p className="text-xs text-red-600">{passwordError}</p>
-                        )}
-                        <div className="text-xs text-gray-600">
-                          <p className="font-medium">Password must contain:</p>
-                          <ul className="list-disc list-inside ml-2 space-y-1">
-                            <li>At least 6 characters</li>
-                            <li>One uppercase letter (A-Z)</li>
-                            <li>One number (0-9)</li>
-                            <li>One special character (!@#$%^&* etc.)</li>
-                          </ul>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  
                   <div className="mt-3 p-2 bg-blue-50 rounded text-xs text-blue-800">
                     <Mail className="h-4 w-4 inline mr-1" />
                     Credentials will be automatically emailed to the teacher after creation.
