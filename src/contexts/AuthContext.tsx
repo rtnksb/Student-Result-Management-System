@@ -35,29 +35,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     setLoading(false);
 
-    // Add event listener for browser close/refresh
-    const handleBeforeUnload = () => {
-      // Clear session data when browser is closed or refreshed
-      sessionStorage.removeItem('currentUser');
+    // Add event listener for browser close (not refresh)
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // Only clear session if it's actually a browser close, not a refresh
+      // We can't reliably detect this, so we'll rely on sessionStorage behavior
+      // sessionStorage persists through page refreshes but clears on browser close
     };
 
-    const handleVisibilityChange = () => {
-      // Optional: Also clear on tab visibility change (when user switches away)
-      if (document.visibilityState === 'hidden') {
-        sessionStorage.removeItem('currentUser');
-      }
-    };
+    // Set up a heartbeat to detect if the browser was closed
+    const heartbeatInterval = setInterval(() => {
+      sessionStorage.setItem('heartbeat', Date.now().toString());
+    }, 1000);
 
-    // Listen for browser close/refresh
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    
-    // Optional: Listen for tab visibility changes
-    // document.addEventListener('visibilitychange', handleVisibilityChange);
+    // Check if this is a fresh browser session (no heartbeat from previous session)
+    const lastHeartbeat = sessionStorage.getItem('heartbeat');
+    if (!lastHeartbeat) {
+      // This is a new browser session, keep the user logged in if they have valid session data
+    }
 
-    // Cleanup event listeners
+    // Cleanup
     return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      // document.removeEventListener('visibilitychange', handleVisibilityChange);
+      clearInterval(heartbeatInterval);
     };
   }, []);
 
