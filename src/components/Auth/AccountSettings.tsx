@@ -3,7 +3,7 @@ import { X, Save, Eye, EyeOff, User, AlertCircle, CheckCircle } from 'lucide-rea
 import { useAuth } from '../../contexts/AuthContext';
 import { useData } from '../../contexts/DataContext';
 import { supabase } from '../../lib/supabase';
-import { verifyPassword } from '../../utils/passwordUtils';
+import { verifyPassword, validatePassword } from '../../utils/passwordUtils';
 import { showNotification } from '../../utils/notification';
 
 interface AccountSettingsProps {
@@ -88,9 +88,11 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ onClose }) => {
 
       // Validate new password if provided
       if (formData.newPassword) {
-        if (formData.newPassword.length < 6) {
-          setMessage({ type: 'error', text: 'New password must be at least 6 characters long' });
-          showNotification('New password must be at least 6 characters long', 'error');
+        const passwordValidation = validatePassword(formData.newPassword);
+        if (!passwordValidation.isValid) {
+          const errorMessage = passwordValidation.errors.join('. ');
+          setMessage({ type: 'error', text: errorMessage });
+          showNotification(errorMessage, 'error');
           setLoading(false);
           return;
         }
@@ -304,6 +306,17 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ onClose }) => {
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
+              {formData.newPassword && (
+                <div className="mt-2 text-xs text-gray-600">
+                  <p className="font-medium">Password must contain:</p>
+                  <ul className="list-disc list-inside ml-2 space-y-1">
+                    <li>At least 6 characters</li>
+                    <li>One uppercase letter (A-Z)</li>
+                    <li>One number (0-9)</li>
+                    <li>One special character (!@#$%^&* etc.)</li>
+                  </ul>
+                </div>
+              )}
                   {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
