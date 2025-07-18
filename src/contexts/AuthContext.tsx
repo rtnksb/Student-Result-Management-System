@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, AuthState } from '../types';
 import { supabase } from '../lib/supabase';
+import { verifyPassword } from '../utils/passwordUtils';
 
 interface AuthContextType extends AuthState {
   login: (username: string, password: string) => Promise<boolean>;
@@ -63,12 +64,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       
-      // Query Supabase for user with service role to bypass RLS
+      // Query Supabase for user
       const { data: userData, error } = await supabase
         .from('users')
         .select('*')
         .eq('username', username)
-        .eq('password', password)
         .single();
       
       if (error) {
@@ -77,6 +77,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (!userData) {
+        return false;
+      }
+
+      // Verify password using bcrypt
+      const isPasswordValid = await verifyPassword(password, userData.password);
+      if (!isPasswordValid) {
+        console.error('Invalid password');
         return false;
       }
 

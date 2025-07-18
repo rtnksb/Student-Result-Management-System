@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Student, Subject, Grade, User, ClassInfo, Announcement } from '../types';
 import { supabase } from '../lib/supabase';
+import { hashPassword, generateSecurePassword } from '../utils/passwordUtils';
 
 interface DataContextType {
   students: Student[];
@@ -186,7 +187,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const generateTeacherCredentials = () => {
     const teacherCount = users.filter(u => u.role === 'teacher').length;
     const accessId = `TCH${String(teacherCount + 1).padStart(3, '0')}`;
-    const password = Math.random().toString(36).slice(-8);
+    const password = generateSecurePassword(10); // Generate secure password
     const username = `teacher${String(teacherCount + 1).padStart(3, '0')}`;
     
     return { username, password, accessId };
@@ -379,11 +380,14 @@ const generateUsernameFromName = (name: string): string => {
   // User operations
   const addUser = async (userData: Omit<User, 'id'>) => {
     try {
+      // Hash the password before storing
+      const hashedPassword = await hashPassword(userData.password);
+      
       const { data, error } = await supabase
         .from('users')
         .insert({
           username: userData.username,
-          password: userData.password,
+          password: hashedPassword,
           role: userData.role,
           name: userData.name,
           email: userData.email,
@@ -407,7 +411,10 @@ const generateUsernameFromName = (name: string): string => {
     try {
       const updateData: any = {};
       if (userData.username) updateData.username = userData.username;
-      if (userData.password) updateData.password = userData.password;
+      if (userData.password) {
+        // Hash the new password before storing
+        updateData.password = await hashPassword(userData.password);
+      }
       if (userData.role) updateData.role = userData.role;
       if (userData.name) updateData.name = userData.name;
       if (userData.email) updateData.email = userData.email;

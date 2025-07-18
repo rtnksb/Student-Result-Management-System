@@ -3,6 +3,7 @@ import { X, Save, Eye, EyeOff, User, AlertCircle, CheckCircle } from 'lucide-rea
 import { useAuth } from '../../contexts/AuthContext';
 import { useData } from '../../contexts/DataContext';
 import { supabase } from '../../lib/supabase';
+import { verifyPassword } from '../../utils/passwordUtils';
 import { showNotification } from '../../utils/notification';
 
 interface AccountSettingsProps {
@@ -62,7 +63,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ onClose }) => {
     setMessage(null);
 
     try {
-      // Validate current password by checking against database
+      // Get user's hashed password from database
       const { data: userData, error } = await supabase
         .from('users')
         .select('password')
@@ -76,7 +77,9 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ onClose }) => {
         return;
       }
 
-      if (formData.currentPassword !== userData.password) {
+      // Verify current password using bcrypt
+      const isCurrentPasswordValid = await verifyPassword(formData.currentPassword, userData.password);
+      if (!isCurrentPasswordValid) {
         setMessage({ type: 'error', text: 'Current password is incorrect' });
         showNotification('Current password is incorrect', 'error');
         setLoading(false);

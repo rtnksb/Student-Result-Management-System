@@ -28,8 +28,8 @@ const TeacherManagement: React.FC = () => {
   });
 
   const handleAddTeacher = () => {
-    const { password, accessId } = generateTeacherCredentials();
-    setGeneratedCredentials({ username: '', password, accessId });
+    const { username, password, accessId } = generateTeacherCredentials();
+    setGeneratedCredentials({ username, password, accessId });
     setFormData({
       name: '',
       email: '',
